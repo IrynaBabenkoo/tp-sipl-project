@@ -1,0 +1,50 @@
+start: program
+
+program: "begin" stmt "end"
+
+?stmt: seq_stmt
+
+?seq_stmt: seq_stmt ";" single_stmt   -> seq
+         | single_stmt
+
+?single_stmt: VAR ":=" aexp                         -> assign
+            | "if" bexp "then" single_stmt "else" single_stmt -> if_stmt
+            | "while" bexp "do" single_stmt         -> while_stmt
+            | "begin" stmt "end"                    -> block
+            | "skip"                                -> skip
+
+?aexp: aexp "+" term   -> add
+     | aexp "-" term   -> sub
+     | term
+
+?term: term "*" factor -> mult
+     | factor
+
+?factor: NUMBER        -> num
+       | VAR           -> var
+       | "(" aexp ")"  -> paren_aexp
+
+?bexp: bexp DISJ bterm -> or_expr
+     | bterm
+
+?bterm: NEG bterm      -> neg_expr
+      | batom
+
+?batom: aexp "=" aexp  -> eq_expr
+      | aexp ">" aexp  -> gt_expr
+      | aexp "<" aexp  -> lt_expr
+      | aexp ">=" aexp -> ge_expr
+      | aexp "<=" aexp -> le_expr
+      | "(" bexp ")"   -> paren_bexp
+
+DISJ: "\\/" | "|" | "or"
+NEG: "¬" | "!" | "not"
+
+VAR: /[A-Za-z_][A-Za-z0-9_]*/
+NUMBER: /-?\d+/
+
+COMMENT: /\/\/[^\n]*/ | /#[^\n]*/
+
+%import common.WS
+%ignore WS
+%ignore COMMENT
