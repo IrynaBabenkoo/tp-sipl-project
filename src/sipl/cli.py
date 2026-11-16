@@ -6,6 +6,7 @@ from pathlib import Path
 from sipl.interpreter.evaluator import SIPLInterpreter, SIPLRuntimeError
 from sipl.parser import SIPLSyntaxError, parse_cst, parse_program
 from sipl.visualization.tree_export import cst_to_dict, cst_to_dot, cst_to_text, export_svg
+from sipl.semantics.term_builder import program_to_term
 
 
 def _parse_state(pairs: list[str] | None) -> dict[str, int]:
@@ -52,6 +53,10 @@ def main(argv: list[str] | None = None) -> int:
     p_tree.add_argument("file", help="Path to .sipl file")
     p_tree.add_argument("--format", choices=["text", "json", "dot", "svg"], default="text")
     p_tree.add_argument("-o", "--output", help="Output file path (required for svg)")
+
+    p_term = sub.add_parser("term", help="Build semantic term of SIPL program")
+    p_term.add_argument("file", help="Path to .sipl file")
+    p_term.add_argument("--json", action="store_true", help="Output JSON")
 
     args = parser.parse_args(argv)
 
@@ -138,6 +143,15 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Written to {args.output}")
             else:
                 print(rendered)
+            return 0
+
+        if args.command == "term":
+            program = parse_program(source)
+            term = program_to_term(program)
+            if args.json:
+                print(json.dumps({"status": "ok", "term": term}, ensure_ascii=False))
+            else:
+                print(term)
             return 0
 
     except (OSError, ValueError, SIPLSyntaxError, SIPLRuntimeError) as exc:

@@ -73,4 +73,4 @@ def test_ast_to_dict() -> None:
     assert isinstance(ast.stmt, AssignStmt)
     assert isinstance(ast.stmt.expr, NumExpr)
     assert isinstance(VarExpr(ast.span, "X"), VarExpr)
-    
+    pytest
